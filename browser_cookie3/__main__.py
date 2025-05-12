@@ -46,16 +46,29 @@ def main(args=None):
     except browser_cookie3.BrowserCookieError as e:
         p.error(e.args[0])
 
-    for cookie in cj:
-        if cookie.domain in (args.domain, '.' + args.domain) and cookie.name == args.name:
-            if not args.json:
-                print(cookie.value)
-            else:
-                print(json.dumps({k: v for k, v in vars(cookie).items()
-                                  if v is not None and (k, v) != ('_rest', {})}))
-            break
+    if args.name != "*":
+        for cookie in cj:
+            if cookie.domain in (args.domain, '.' + args.domain) and cookie.name == args.name:
+                if not args.json:
+                    print(cookie.value)
+                else:
+                    print(json.dumps({k: v for k, v in vars(cookie).items()
+                                      if v is not None and (k, v) != ('_rest', {})}))
+                break
+        else:
+            raise SystemExit(1)
     else:
-        raise SystemExit(1)
+        cookies = {}
+        for cookie in cj:
+            if cookie.domain in (args.domain, '.' + args.domain):
+                cookies[cookie.name] = cookie.value
+        if not cookies:
+            raise SystemExit(1)
+
+        if not args.json:
+            print(';'.join(f'{k}={v}' for k, v in cookies.items()))
+        else:
+            print(json.dumps(cookies, indent=2))
 
 
 if __name__ == '__main__':
